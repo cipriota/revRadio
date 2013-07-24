@@ -3,35 +3,88 @@
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 	<link rel="stylesheet" href="css/ui-lightness/jquery-ui-1.10.3.custom.css" />
+
+	<style>
+		#power { padding: 5px 20px; border: 1px solid #F00; display: inline-block; font-weight: bold; border-radius: 4px; cursor: pointer; }
+		#power.off { color: #F00; background: #FFF; }
+		#power.on { color: #FFF; background: #F00; }
+		#frequency { width: 100%; text-align: center; font-family: "Courier"; font-size: 24px; line-height: 50px; }
+		#slider { width: 90%; margin: 0 auto 30px auto; }
+		.station { height: 30px; border: 1px solid #AAA; border-radius: 5px; background: #FFF; }
+		.station.selected { background: rgb(181, 252, 255); }
+
+		.ui-slider-handle { background: rgb(181, 252, 255) !important; }
+	</style>
 	<script src="js/jquery-1.9.1.js"></script>
 	<script src="js/jquery-ui-1.10.3.custom.js"></script>
+	<script src="js/jquery.ui.touch-punch.min.js"></script>
 	<script>
+	setTimeout(function() { CheckStatus(true); }, 500);
+
+	var stations = [
+		{"name": "TSF", "frequency": 89.5},
+		{"name": "Radar", "frequency": 97.8},
+		{"name": "Antena 3", "frequency": 100.3},
+		{"name": "Oxigenio", "frequency": 102.6},
+		{"name": "RDP Africa", "frequency": 101.5}
+	];
+
 	$(function() {
 		var slider = $( "#slider" ).slider({
 			slide: function( event, ui ) {
-				$('#frequency').val(ui.value);	
+				$('#frequency').html(ui.value + " MHz");	
 			},
 			stop: function( event, ui ) {
-				$('#frequency').val(ui.value);
+				$('#frequency').html(ui.value + " MHz");
 				ChangeFrequency(ui.value);		
 			},
 			min: 87.5,
 			max: 108.0,
 			step: 0.1
 		});
+
+		$('#power').click(function() {
+			
+		});
+
+		for (i in stations) {
+			var station = stations[i];
+			var button = $('<button>');
+
+			button.attr('id', station.frequency);
+			button.addClass('station');
+			button.html(station.name);
+
+			button.click(function (){
+				$('.station').each(function (){
+					$(this).removeClass("selected");
+				});
+				$(this).addClass("selected");
+				$('#slider').slider("value", $(this).attr('id'));
+				$('#frequency').html($(this).attr('id') + " MHz");
+				ChangeFrequency($(this).attr('id'));
+			});
+			$('#stationList').append(button);
+		}
+
 	});
 
 	function ChangeFrequency(freq) {
 		var frequency = freq*1000000;
-		console.log(frequency);	
-		$.get('changefrequency.php?frequency='+frequency, function() {
-			console.log("sent");		
-		});
+		$.get('changefrequency.php?frequency='+frequency, function() {});
+	}
+
+	function checkStatus(mode) {
+		$.get('checkStatus.php', function(data) { console.log(data);});
 	}
 	</script>
 </head>
 <body>
-	<input id="frequency" type="text" value="87.5" size="5"/>
+	<div id="power" class="on">POWER</div>
+	<div id="frequency" type="text">87.5 MHz</div>
 	<div id="slider"></div>
+	<div id="stationList"></div>
+	<div id="lcd">
+	</div>
 </body>
 </html>
